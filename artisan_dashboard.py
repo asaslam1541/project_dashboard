@@ -29,12 +29,25 @@ artisan_df['Annual Income Range'] = artisan_df['Annual Income Range'].str.replac
 # Replace the incorrect value 500000 with 100000
 
 # Strip any whitespace and convert to string
+artisan_df['Annual Income Range'] = artisan_df['Annual Income Range'].astype(str).str.strip()
+
+# Replace the incorrect value 500000 with 100000
+artisan_df['Annual Income Range'] = artisan_df['Annual Income Range'].replace('500000', '100000')
+
+# Remove commas and convert to numeric
+artisan_df['Annual Income Range'] = artisan_df['Annual Income Range'].str.replace(',', '').astype(float)
+
+# Replace the incorrect value 500000 with 100000
+
+# Strip any whitespace and convert to string
 artisan_df['What type of handicraft your business is focused on?'] = artisan_df['What type of handicraft your business is focused on?'].astype(str).str.strip()
 artisan_df['What type of handicraft your business is focused on?'] = artisan_df['What type of handicraft your business is focused on?'].replace('Carteps and Rugs', 'Carpets & Rugs')
 artisan_df['What type of handicraft your business is focused on?'] = artisan_df['What type of handicraft your business is focused on?'].replace('Carpets and Rugs', 'Carpets & Rugs')
 artisan_df['What type of handicraft your business is focused on?'] = artisan_df['What type of handicraft your business is focused on?'].replace('Leather work', 'Leatherwork')
 artisan_df['What type of handicraft your business is focused on?'] = artisan_df['What type of handicraft your business is focused on?'].replace('Jewlery', 'Jewelry')
 artisan_df['What type of handicraft your business is focused on?'] = artisan_df['What type of handicraft your business is focused on?'].replace('Textile', 'Textiles')
+artisan_df = artisan_df.rename(columns={'If yes, how many years have passed since its establishment?': 'Business Experience'})
+artisan_df = artisan_df.rename(columns={'How many years of experience do you have in this profession?': 'Professional Experience'})
 
 #Import Dashboard Libraries
 import pandas as pd
@@ -71,17 +84,16 @@ app.layout = html.Div([
         clearable=False
     ),
     html.Div([
-        dcc.Graph(id='age-income-scatter', style={'width': '100%', 'display': 'inline-block'}),
-        dcc.Graph(id='category-bar-chart', style={'width': '50%', 'display': 'inline-block'}),
-        dcc.Graph(id='market-bar-chart', style={'width': '50%', 'display': 'inline-block'})
-    
-        
+        dcc.Graph(id='experience-income-scatter', style={'width': '100%', 'display': 'inline-block'}),
+        dcc.Graph(id='category-bar-chart', style={'width': '100%', 'display': 'inline-block'}),
+        dcc.Graph(id='market-bar-chart', style={'width': '60%', 'display': 'inline-block'}),
+        dcc.Graph(id='marital-status-chart', style={'width': '40%', 'display': 'inline-block'})
     ])
 ])
 
 # Callback to update the scatter plot based on dropdown selection
 @app.callback(
-    Output('age-income-scatter', 'figure'),
+    Output('experience-income-scatter', 'figure'),
     [Input('city-dropdown', 'value'),
      Input('handicraft-dropdown', 'value')]
 )
@@ -103,16 +115,16 @@ def update_scatter_plot(selected_city, selected_handicraft):
     )
 
     # Create scatter plot with work permit status
-    fig = px.scatter(filtered_df, x='Age', y='Annual Income Range', color='Work Permit Status', 
-                     title=f'Age vs Income in {selected_city} - {selected_handicraft}',
+    fig = px.scatter(filtered_df, x='Professional Experience', y='Annual Income Range', color='Work Permit Status', 
+                     title=f'Experience vs Income in {selected_city} - {selected_handicraft}',
                      labels={'Work Permit Status': 'Work Permit Status'})
 
     # Add overall average line
     overall_avg_income = artisan_df['Annual Income Range'].mean()
     fig.add_shape(
         type="line",
-        x0=filtered_df['Age'].min(),
-        x1=filtered_df['Age'].max(),
+        x0=filtered_df['Professional Experience'].min(),
+        x1=filtered_df['Professional Experience'].max(),
         y0=overall_avg_income,
         y1=overall_avg_income,
         line=dict(color="Red", width=2, dash="dash"),
@@ -124,8 +136,8 @@ def update_scatter_plot(selected_city, selected_handicraft):
         city_avg_income = filtered_df['Annual Income Range'].mean()
         fig.add_shape(
             type="line",
-            x0=filtered_df['Age'].min(),
-            x1=filtered_df['Age'].max(),
+            x0=filtered_df['Professional Experience'].min(),
+            x1=filtered_df['Professional Experience'].max(),
             y0=city_avg_income,
             y1=city_avg_income,
             line=dict(color="Blue", width=2, dash="dot"),
@@ -155,7 +167,8 @@ def update_bar_chart(selected_city, selected_handicraft):
 
     # Create bar chart for the number of values in each category by province
     bar_fig = px.bar(category_counts, x='Handicraft Category', y='Count', color='Handicraft Category',
-                     title=f'Number of Values in Each Category by {selected_city}')
+                     title=f'Artisan Category by {selected_city}',
+                     labels={'Count': ''})  # Remove 'Count' label from y-axis
 
     return bar_fig
 
@@ -186,10 +199,37 @@ def update_market_bar_chart(selected_city, selected_handicraft):
 
     # Create bar chart for the number of values in each market type
     market_bar_fig = px.bar(market_counts_df, x='Market Type', y='Count', color='Market Type',
-                            title=f'Number of Values in Each Market by {selected_city}')
+                            title=f'Market Exposure for {selected_city}',
+                            labels={'Count': ''})  # Remove 'Count' label from y-axis
 
     return market_bar_fig
 
+# Callback to update the marital status chart based on dropdown selection
+@app.callback(
+    Output('marital-status-chart', 'figure'),
+    [Input('city-dropdown', 'value'),
+     Input('handicraft-dropdown', 'value')]
+)
+def update_marital_status_chart(selected_city, selected_handicraft):
+    filtered_df = artisan_df
+
+    if selected_city != 'All Cities':
+        filtered_df = filtered_df[filtered_df['City'] == selected_city]
+
+    if selected_handicraft != 'All Categories':
+        filtered_df = filtered_df[filtered_df['What type of handicraft your business is focused on?'] == selected_handicraft]
+
+    # Count occurrences of each marital status
+    marital_status_counts = filtered_df['Martial State'].value_counts().reset_index()
+    marital_status_counts.columns = ['Marital Status', 'Count']
+
+    # Create bar chart for marital status distribution
+    marital_status_fig = px.bar(marital_status_counts, x='Marital Status', y='Count', color='Marital Status',
+                                title=f'Marital Status - {selected_city} - {selected_handicraft}',
+                                labels={'Count': ''})  # Remove 'Count' label from y-axis
+
+    return marital_status_fig
+
 # Run the app on a different port
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8051) 
+    app.run_server(debug=True, port=8051)
