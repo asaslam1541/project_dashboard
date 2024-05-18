@@ -9,6 +9,13 @@ artisan_df = pd.read_csv(url)
 #Display DataFrame
 artisan_df.head()
 
+# Try to load the dataset
+try:
+    artisan_df = pd.read_csv(url)
+except Exception as e:
+    print(f"Error loading data: {e}")
+    artisan_df = pd.DataFrame()  # Create an empty dataframe as a fallback
+
 #Modify & Adjust Data
 # Strip any whitespace and convert to string
 artisan_df['Annual Income Range'] = artisan_df['Annual Income Range'].astype(str).str.strip()
@@ -36,13 +43,6 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
 
-
-# Try to load the dataset
-try:
-    artisan_df = pd.read_csv(url)
-except Exception as e:
-    print(f"Error loading data: {e}")
-    artisan_df = pd.DataFrame()  # Create an empty dataframe as a fallback
 
 # Initialize the Dash app
 app = dash.Dash(__name__)
