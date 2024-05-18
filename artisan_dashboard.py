@@ -40,7 +40,18 @@ from dash.dependencies import Input, Output
 app = dash.Dash(__name__)
 server = app.server
 
-# Layout of the Dash app
+
+# Try to load the dataset
+try:
+    artisan_df = pd.read_csv(url)
+except Exception as e:
+    print(f"Error loading data: {e}")
+    artisan_df = pd.DataFrame()  # Create an empty dataframe as a fallback
+
+# Initialize the Dash app
+app = dash.Dash(__name__)
+
+# Define the layout of the app
 app.layout = html.Div([
     html.H1("Interactive Dashboard"),
     dcc.Dropdown(
@@ -51,138 +62,52 @@ app.layout = html.Div([
     ),
     dcc.Dropdown(
         id='handicraft-dropdown',
-        options=[
-            {'label': 'All Categories', 'value': 'All Categories'},
-            {'label': 'Textiles', 'value': 'Textiles'},
-            {'label': 'Carpets & Rugs', 'value': 'Carpets & Rugs'},
-            {'label': 'Ceramics', 'value': 'Ceramics'},
-            {'label': 'Jewelry', 'value': 'Jewelry'},
-            {'label': 'Leatherwork', 'value': 'Leatherwork'}
-        ],
+        options=[{'label': 'All Categories', 'value': 'All Categories'}] +
+                [{'label': category, 'value': category} for category in artisan_df['What type of handicraft your business is focused on?'].unique()],
         value='All Categories',
         clearable=False
     ),
+    dcc.Graph(id='age-income-scatter'),
     html.Div([
-        dcc.Graph(id='age-income-scatter', style={'width': '100%', 'display': 'inline-block'}),
-        dcc.Graph(id='category-bar-chart', style={'width': '50%', 'display': 'inline-block'}),
-        dcc.Graph(id='market-bar-chart', style={'width': '50%', 'display': 'inline-block'})
-    
-        
+        dcc.Graph(id='category-bar-chart', style={'display': 'inline-block', 'width': '50%'}),
+        dcc.Graph(id='market-bar-chart', style={'display': 'inline-block', 'width': '50%'})
     ])
 ])
 
-# Callback to update the scatter plot based on dropdown selection
+# Callback to update the graphs based on dropdown selections
 @app.callback(
-    Output('age-income-scatter', 'figure'),
+    [Output('age-income-scatter', 'figure'),
+     Output('category-bar-chart', 'figure'),
+     Output('market-bar-chart', 'figure')],
     [Input('city-dropdown', 'value'),
      Input('handicraft-dropdown', 'value')]
 )
-def update_scatter_plot(selected_city, selected_handicraft):
-    filtered_df = artisan_df
+def update_graphs(selected_city, selected_category):
+    if artisan_df.empty:
+        return {}, {}, {}  # Return empty figures if data is not loaded
 
-    if selected_city != 'All Cities':
-        filtered_df = filtered_df[filtered_df['City'] == selected_city]
+    if selected_city == 'All Cities':
+        filtered_df = artisan_df
+    else:
+        filtered_df = artisan_df[artisan_df['City'] == selected_city]
 
-    if selected_handicraft != 'All Categories':
-        filtered_df = filtered_df[filtered_df['What type of handicraft your business is focused on?'] == selected_handicraft]
+    if selected_category != 'All Categories':
+        filtered_df = filtered_df[filtered_df['What type of handicraft your business is focused on?'] == selected_category]
 
-    # Count the number of "Yes" and "No" for work permits in the filtered data
-    work_permit_counts = filtered_df['Do you have a work permit?'].value_counts().to_dict()
+    # Create scatter plot
+    fig_scatter = px.scatter(filtered_df, x='Age', y='Annual Income Range', color='City', title=f'Age vs Income in {selected_city}')
+    
+    # Create bar chart for categories
+    category_counts = filtered_df['What type of handicraft your business is focused on?'].value_counts()
+    fig_category_bar = px.bar(category_counts, x=category_counts.index, y=category_counts.values, title='Handicraft Categories')
 
-    # Ensure that the filtered data is updated correctly with the counts
-    filtered_df['Work Permit Status'] = filtered_df['Do you have a work permit?'].map(
-        lambda x: f'{x} ({work_permit_counts.get(x, 0)})'
-    )
+    # Create bar chart for market distribution
+    market_columns = ['Local Market', 'Village Level', 'Foreign Market', 'National Market']
+    market_counts = filtered_df[market_columns].apply(pd.Series.value_counts).fillna(0).loc['Yes']
+    fig_market_bar = px.bar(market_counts, x=market_counts.index, y=market_counts.values, title='Market Distribution')
 
-    # Create scatter plot with work permit status
-    fig = px.scatter(filtered_df, x='Age', y='Annual Income Range', color='Work Permit Status', 
-                     title=f'Age vs Income in {selected_city} - {selected_handicraft}',
-                     labels={'Work Permit Status': 'Work Permit Status'})
-
-    # Add overall average line
-    overall_avg_income = artisan_df['Annual Income Range'].mean()
-    fig.add_shape(
-        type="line",
-        x0=filtered_df['Age'].min(),
-        x1=filtered_df['Age'].max(),
-        y0=overall_avg_income,
-        y1=overall_avg_income,
-        line=dict(color="Red", width=2, dash="dash"),
-        name="Overall Average"
-    )
-
-    # Add city-specific average line if not 'All Cities'
-    if selected_city != 'All Cities':
-        city_avg_income = filtered_df['Annual Income Range'].mean()
-        fig.add_shape(
-            type="line",
-            x0=filtered_df['Age'].min(),
-            x1=filtered_df['Age'].max(),
-            y0=city_avg_income,
-            y1=city_avg_income,
-            line=dict(color="Blue", width=2, dash="dot"),
-            name=f"{selected_city} Average"
-        )
-
-    return fig
-
-# Callback to update the category bar chart based on dropdown selection
-@app.callback(
-    Output('category-bar-chart', 'figure'),
-    [Input('city-dropdown', 'value'),
-     Input('handicraft-dropdown', 'value')]
-)
-def update_bar_chart(selected_city, selected_handicraft):
-    filtered_df = artisan_df
-
-    if selected_city != 'All Cities':
-        filtered_df = filtered_df[filtered_df['City'] == selected_city]
-
-    if selected_handicraft != 'All Categories':
-        filtered_df = filtered_df[filtered_df['What type of handicraft your business is focused on?'] == selected_handicraft]
-
-    # Group by handicraft category and count occurrences
-    category_counts = filtered_df['What type of handicraft your business is focused on?'].value_counts().reset_index()
-    category_counts.columns = ['Handicraft Category', 'Count']
-
-    # Create bar chart for the number of values in each category by province
-    bar_fig = px.bar(category_counts, x='Handicraft Category', y='Count', color='Handicraft Category',
-                     title=f'Number of Values in Each Category by {selected_city}')
-
-    return bar_fig
-
-# Callback to update the market bar chart based on dropdown selection
-@app.callback(
-    Output('market-bar-chart', 'figure'),
-    [Input('city-dropdown', 'value'),
-     Input('handicraft-dropdown', 'value')]
-)
-def update_market_bar_chart(selected_city, selected_handicraft):
-    filtered_df = artisan_df
-
-    if selected_city != 'All Cities':
-        filtered_df = filtered_df[filtered_df['City'] == selected_city]
-
-    if selected_handicraft != 'All Categories':
-        filtered_df = filtered_df[filtered_df['What type of handicraft your business is focused on?'] == selected_handicraft]
-
-    # Count occurrences of "Yes" for each market type
-    market_counts = {
-        'Local Market': filtered_df['Local Market'].value_counts().get('Yes', 0),
-        'Foreign Market': filtered_df['Foreign Market'].value_counts().get('Yes', 0),
-        'National': filtered_df['National'].value_counts().get('Yes', 0),
-        'Village Level': filtered_df['Village Level'].value_counts().get('Yes', 0)
-    }
-
-    market_counts_df = pd.DataFrame(list(market_counts.items()), columns=['Market Type', 'Count'])
-
-    # Create bar chart for the number of values in each market type
-    market_bar_fig = px.bar(market_counts_df, x='Market Type', y='Count', color='Market Type',
-                            title=f'Number of Values in Each Market by {selected_city}')
-
-    return market_bar_fig
+    return fig_scatter, fig_category_bar, fig_market_bar
 
 # Run the app on a different port
 if __name__ == '__main__':
     app.run_server(debug=True, port=8051)
-
