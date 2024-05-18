@@ -192,4 +192,4 @@ def update_market_bar_chart(selected_city, selected_handicraft):
 
 # Run the app on a different port
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8051)
+    app.run_server(debug=True, port=8051) 
