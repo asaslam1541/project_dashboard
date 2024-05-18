@@ -3,7 +3,7 @@ import pandas as pd
 from pathlib import Path
 
 #Create DataFrame
-url = 'https://raw.githubusercontent.com/your-username/your-repository/main/artisan_data.csv'
+url = 'https://raw.githubusercontent.com/asaslam1541/project_dashboard/main/artisan_data.csv'
 artisan_df = pd.read_csv(url)
 
 #Display DataFrame
