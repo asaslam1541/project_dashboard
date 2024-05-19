@@ -1,0 +1,37 @@
+/* styles.css */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    padding: 20px;
+    color: #C00000;
+}
+
+.dropdown-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.dropdown-container .dropdown {
+    margin: 0 10px;
+    width: 200px;
+}
+
+.graph-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    margin: 20px;
+}
+
+.graph-container .graph {
+    margin: 10px;
+    border: 1px solid #ddd;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+}
