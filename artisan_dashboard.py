@@ -62,27 +62,6 @@ app = dash.Dash(__name__)
 server = app.server
 
 
-# Sample data
-df = pd.DataFrame({
-    "Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
-    "Amount": [4, 1, 2, 2, 4, 5],
-    "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
-})
-
-# Sample artisan data (replace with your actual data)
-artisan_df = pd.DataFrame({
-    "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"],
-    "What type of handicraft your business is focused on?": ["Textiles", "Carpets & Rugs", "Ceramics", "Jewelry", "Leatherwork", "Textiles"],
-    "Professional Experience": [5, 10, 3, 8, 12, 7],
-    "Annual Income Range": [30000, 45000, 20000, 50000, 60000, 35000],
-    "Do you have a work permit?": ["Yes", "No", "Yes", "No", "Yes", "Yes"],
-    "Local Market": ["Yes", "No", "Yes", "No", "Yes", "No"],
-    "Foreign Market": ["No", "Yes", "No", "Yes", "No", "Yes"],
-    "National": ["Yes", "No", "Yes", "No", "Yes", "No"],
-    "Village Level": ["No", "Yes", "No", "Yes", "No", "Yes"],
-    "Martial State": ["Single", "Married", "Single", "Married", "Single", "Married"]
-})
-
 # Define the layout of the app
 app.layout = html.Div([
     
