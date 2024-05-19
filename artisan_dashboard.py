@@ -61,34 +61,60 @@ from dash.dependencies import Input, Output
 app = dash.Dash(__name__)
 server = app.server
 
-# Layout of the Dash app
+
+# Sample data
+df = pd.DataFrame({
+    "Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
+    "Amount": [4, 1, 2, 2, 4, 5],
+    "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
+})
+
+# Sample artisan data (replace with your actual data)
+artisan_df = pd.DataFrame({
+    "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"],
+    "What type of handicraft your business is focused on?": ["Textiles", "Carpets & Rugs", "Ceramics", "Jewelry", "Leatherwork", "Textiles"],
+    "Professional Experience": [5, 10, 3, 8, 12, 7],
+    "Annual Income Range": [30000, 45000, 20000, 50000, 60000, 35000],
+    "Do you have a work permit?": ["Yes", "No", "Yes", "No", "Yes", "Yes"],
+    "Local Market": ["Yes", "No", "Yes", "No", "Yes", "No"],
+    "Foreign Market": ["No", "Yes", "No", "Yes", "No", "Yes"],
+    "National": ["Yes", "No", "Yes", "No", "Yes", "No"],
+    "Village Level": ["No", "Yes", "No", "Yes", "No", "Yes"],
+    "Martial State": ["Single", "Married", "Single", "Married", "Single", "Married"]
+})
+
+# Define the layout of the app
 app.layout = html.Div([
-    html.H1("Interactive Dashboard"),
-    dcc.Dropdown(
-        id='city-dropdown',
-        options=[{'label': city, 'value': city} for city in artisan_df['City'].unique()] + [{'label': 'All Cities', 'value': 'All Cities'}],
-        value='All Cities',
-        clearable=False
-    ),
-    dcc.Dropdown(
-        id='handicraft-dropdown',
-        options=[
-            {'label': 'All Categories', 'value': 'All Categories'},
-            {'label': 'Textiles', 'value': 'Textiles'},
-            {'label': 'Carpets & Rugs', 'value': 'Carpets & Rugs'},
-            {'label': 'Ceramics', 'value': 'Ceramics'},
-            {'label': 'Jewelry', 'value': 'Jewelry'},
-            {'label': 'Leatherwork', 'value': 'Leatherwork'}
-        ],
-        value='All Categories',
-        clearable=False
-    ),
+    
     html.Div([
-        dcc.Graph(id='experience-income-scatter', style={'width': '100%', 'display': 'inline-block'}),
-        dcc.Graph(id='category-bar-chart', style={'width': '100%', 'display': 'inline-block'}),
-        dcc.Graph(id='market-bar-chart', style={'width': '60%', 'display': 'inline-block'}),
-        dcc.Graph(id='marital-status-chart', style={'width': '40%', 'display': 'inline-block'})
-    ])
+        dcc.Dropdown(
+            id='city-dropdown',
+            options=[{'label': city, 'value': city} for city in artisan_df['City'].unique()] + [{'label': 'All Cities', 'value': 'All Cities'}],
+            value='All Cities',
+            clearable=False,
+            className='dropdown'
+        ),
+        dcc.Dropdown(
+            id='handicraft-dropdown',
+            options=[
+                {'label': 'All Categories', 'value': 'All Categories'},
+                {'label': 'Textiles', 'value': 'Textiles'},
+                {'label': 'Carpets & Rugs', 'value': 'Carpets & Rugs'},
+                {'label': 'Ceramics', 'value': 'Ceramics'},
+                {'label': 'Jewelry', 'value': 'Jewelry'},
+                {'label': 'Leatherwork', 'value': 'Leatherwork'}
+            ],
+            value='All Categories',
+            clearable=False,
+            className='dropdown'
+        )
+    ], className='dropdown-container'),
+    html.Div([
+        dcc.Graph(id='experience-income-scatter', className='graph'),
+        dcc.Graph(id='category-bar-chart', className='graph'),
+        dcc.Graph(id='market-bar-chart', className='graph'),
+        dcc.Graph(id='marital-status-chart', className='graph')
+    ], className='graph-container')
 ])
 
 # Callback to update the scatter plot based on dropdown selection
