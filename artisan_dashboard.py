@@ -16,39 +16,6 @@ except Exception as e:
     print(f"Error loading data: {e}")
     artisan_df = pd.DataFrame()  # Create an empty dataframe as a fallback
 
-#Modify & Adjust Data
-# Strip any whitespace and convert to string
-artisan_df['Annual Income Range'] = artisan_df['Annual Income Range'].astype(str).str.strip()
-
-# Replace the incorrect value 500000 with 100000
-artisan_df['Annual Income Range'] = artisan_df['Annual Income Range'].replace('500000', '100000')
-
-# Remove commas and convert to numeric
-artisan_df['Annual Income Range'] = artisan_df['Annual Income Range'].str.replace(',', '').astype(float)
-
-# Replace the incorrect value 500000 with 100000
-
-# Strip any whitespace and convert to string
-artisan_df['Annual Income Range'] = artisan_df['Annual Income Range'].astype(str).str.strip()
-
-# Replace the incorrect value 500000 with 100000
-artisan_df['Annual Income Range'] = artisan_df['Annual Income Range'].replace('500000', '100000')
-
-# Remove commas and convert to numeric
-artisan_df['Annual Income Range'] = artisan_df['Annual Income Range'].str.replace(',', '').astype(float)
-
-# Replace the incorrect value 500000 with 100000
-
-# Strip any whitespace and convert to string
-artisan_df['What type of handicraft your business is focused on?'] = artisan_df['What type of handicraft your business is focused on?'].astype(str).str.strip()
-artisan_df['What type of handicraft your business is focused on?'] = artisan_df['What type of handicraft your business is focused on?'].replace('Carteps and Rugs', 'Carpets & Rugs')
-artisan_df['What type of handicraft your business is focused on?'] = artisan_df['What type of handicraft your business is focused on?'].replace('Carpets and Rugs', 'Carpets & Rugs')
-artisan_df['What type of handicraft your business is focused on?'] = artisan_df['What type of handicraft your business is focused on?'].replace('Leather work', 'Leatherwork')
-artisan_df['What type of handicraft your business is focused on?'] = artisan_df['What type of handicraft your business is focused on?'].replace('Jewlery', 'Jewelry')
-artisan_df['What type of handicraft your business is focused on?'] = artisan_df['What type of handicraft your business is focused on?'].replace('Textile', 'Textiles')
-artisan_df = artisan_df.rename(columns={'If yes, how many years have passed since its establishment?': 'Business Experience'})
-artisan_df = artisan_df.rename(columns={'How many years of experience do you have in this profession?': 'Professional Experience'})
-
 #Import Dashboard Libraries
 import pandas as pd
 import plotly.express as px
